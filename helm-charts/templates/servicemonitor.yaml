@@ -1,0 +1,44 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "grafana-rbac-controller.fullname" .  }}
+  namespace: {{ template "grafana-rbac-controller.namespace" . }}
+  labels:
+{{ template "grafana-rbac-controller.defaultLabels" merge (dict "extraLabels" .Values.serviceMonitor.additionalLabels) .  }}
+spec:
+  endpoints:
+  - targetPort: 9080
+    {{- if .Values.serviceMonitor.interval }}
+    interval: {{ .Values.serviceMonitor.interval }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.scheme }}
+    scheme: {{ .Values.serviceMonitor.scheme }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.bearerTokenFile }}
+    bearerTokenFile: {{ .Values.serviceMonitor.bearerTokenFile }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.tlsConfig }}
+    tlsConfig: {{ toYaml .Values.serviceMonitor.tlsConfig | nindent 6 }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.scrapeTimeout }}
+    scrapeTimeout: {{ .Values.serviceMonitor.scrapeTimeout }}
+    {{- end }}
+    path: /metrics
+    honorLabels: {{ .Values.serviceMonitor.honorLabels }}
+    {{- if .Values.serviceMonitor.metricRelabelings }}
+    metricRelabelings:
+    {{- tpl (toYaml .Values.serviceMonitor.metricRelabelings | nindent 4) . }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.relabelings }}
+    relabelings:
+    {{ toYaml .Values.serviceMonitor.relabelings | nindent 4 }}
+    {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ template "grafana-rbac-controller.namespace" . }}
+  selector:
+    matchLabels:
+      app: {{ template "grafana-rbac-controller.name" . }}
+      release: {{ .Release.Name }}
+{{- end -}}

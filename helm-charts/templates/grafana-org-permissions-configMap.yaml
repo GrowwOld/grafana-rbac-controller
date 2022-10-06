@@ -1,0 +1,9 @@
+{{- if .Values.grafanaOrgPermisions.create }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-grafana-org-permissions
+  namespace: {{ template "grafana-rbac-controller.namespace" . }}
+data:
+  org-permissions.json: {{ .Values.grafanaOrgPermisions.permissions | toJson | indent 4 }}
+{{- end }}

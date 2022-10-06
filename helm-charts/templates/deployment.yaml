@@ -1,0 +1,129 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" .}}
+kind: Deployment
+metadata:
+  name: {{ template "grafana-rbac-controller.fullname" . }}
+  namespace: {{ template "grafana-rbac-controller.namespace" . }}
+  labels:
+{{ template "grafana-rbac-controller.defaultLabels" merge (dict "extraLabels" .Values.podLabels) .  }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "grafana-rbac-controller.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+{{ template "grafana-rbac-controller.defaultLabels" merge (dict "extraLabels" .Values.podLabels "indent" 8) . }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+    spec:
+    {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+    {{- end }}
+      containers:
+        - name: nginx-proxy
+          {{- if .Values.nginxProxy.image.sha }}
+          image: "{{ .Values.nginxProxy.image.repository }}:{{ .Values.nginxProxy.image.tag }}@sha256:{{ .Values.nginxProxy.image.sha }}"
+          {{- else }}
+          image: "{{ .Values.nginxProxy.image.repository }}:{{ .Values.nginxProxy.image.tag }}"
+          {{- end }}
+          imagePullPolicy: "{{ .Values.nginxProxy.image.pullPolicy }}"
+          ports:
+            - name: server
+              containerPort: 80
+              protocol: TCP
+            - name: health
+              containerPort: 8080
+              protocol: TCP
+          resources:
+{{ toYaml .Values.nginxProxy.resources | indent 12 }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+
+        - name: oauth2-proxy
+          {{- if .Values.oauth2Proxy.image.sha }}
+          image: "{{ .Values.oauth2Proxy.image.repository }}:{{ .Values.oauth2Proxy.image.tag }}@sha256:{{ .Values.oauth2Proxy.image.sha }}"
+          {{- else }}
+          image: "{{ .Values.oauth2Proxy.image.repository }}:{{ .Values.oauth2Proxy.image.tag }}"
+          {{- end }}
+          imagePullPolicy: "{{ .Values.oauth2Proxy.image.pullPolicy }}"
+          args: 
+            {{- range .Values.oauth2Proxy.args }}
+            - '--{{ . }}'
+            {{- end }}
+          ports:
+            - containerPort: 4180
+              protocol: TCP
+          resources:
+{{ toYaml .Values.oauth2Proxy.resources | indent 12 }}
+          volumeMounts:
+            - name: oauth2-login-template
+              mountPath: /oauth/grafana_templates
+          env:
+            - name: OAUTH2_PROXY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ template "grafana-rbac-controller.oauthCredentials" . }}"
+                  key: "oauth2-proxy-client-id"
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ template "grafana-rbac-controller.oauthCredentials" . }}"
+                  key: "oauth2-proxy-client-secret"
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ template "grafana-rbac-controller.oauthCredentials" . }}"
+                  key: "oauth2-proxy-cookie-secret"
+
+        - name: controller
+          {{- if .Values.controller.image.sha }}
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}@sha256:{{ .Values.controller.image.sha }}"
+          {{- else }}
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+          {{- end }}
+          imagePullPolicy: "{{ .Values.controller.image.pullPolicy }}"
+          ports:
+          - name: controller
+            containerPort: 9080
+            protocol: TCP
+          resources:
+{{ toYaml .Values.controller.resources | indent 12 }}
+          volumeMounts:
+            - name: grafana-org-permissions
+              mountPath: /app/grafana_orgs
+            - name: google-admin-credentials
+              mountPath: /app/credentials
+          env:
+            - name: GRAFANA-RBAC-CONTROLLER-API-TIMEOUT
+              value: "{{ default "5" .Values.controller.timeout }}"
+            - name: GRAFANA-ENDPOINT
+              value: "{{ template "grafana-rbac-controller.existing-grafana-service" .}}"
+            - name: GRAFANA-ADMIN-PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ template "grafana-rbac-controller.grafana-admin-password" . }}"
+                  key: "grafana-admin-password"
+            - name: GOOGLE-WORKSPACE-ADMIN
+              value: "{{ .Values.googleWorkspaceAdmin }}"
+
+      volumes: 
+        - name: nginx-config
+          configMap:
+            defaultMode: 420
+            name: {{ .Release.Name }}-nginx-config
+        - name: oauth2-login-template
+          configMap:
+            defaultMode: 420
+            name: {{ .Release.Name }}-oauth2-login-template
+        - name: grafana-org-permissions
+          configMap:
+            defaultMode: 420
+            name: "{{ template "grafana-rbac-controller.orgPermissions" . }}"
+        - name: google-admin-credentials
+          secret:
+            defaultMode: 420
+            secretName: "{{ template "grafana-rbac-controller.google-admin-credentials" . }}"
