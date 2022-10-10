@@ -49,7 +49,7 @@ based on your requirements of syncing user to the existing Grafana organisations
 You can deploy the setup in kubernetes using the following command:
 ```
 cd helm-charts
-helm upgrade --install grafana-bac-controller .
+helm upgrade --install grafana-rbac-controller .
 ```
 
 ## To use Grafana RBAC Controller
