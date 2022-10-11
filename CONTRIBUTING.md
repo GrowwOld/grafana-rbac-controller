@@ -45,4 +45,4 @@ Looking at the existing issues is a great way to find something to contribute on
 
 
 ## Security issue notifications
-If you discover a potential security issue in this project we ask that you notify us via our [helpdesk](helpdesk@groww.in). Please do **not** create a public github issue.
+If you discover a potential security issue in this project we ask that you notify us at [security@groww.in](mailto:security@groww.in). Please do **not** create a public github issue.
