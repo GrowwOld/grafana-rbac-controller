@@ -28,7 +28,11 @@ podLabels: {}
 
 # Optional service annotations
 serviceAnnotations: {
+  # # GCP specific annotation for internal IP
   # cloud.google.com/load-balancer-type: "Internal"
+
+  # # AWS specific annotation for internal IP
+  # service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
 }
 
 # Optional service labels
@@ -86,14 +90,13 @@ ingress:
   ##
   enabled: true
   # AWS ALB requires path of /*
-  className: ""
+  className: "nginx"
   path: /
   pathType: ImplementationSpecific
 
   # Annotations.
   #
   annotations:
-    kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: 'true'
 
   # Hostnames.
@@ -203,8 +206,8 @@ oauth2Proxy:
 ## grafana-rbac-controller parameters 
 controller:
   image:
-    repository: kavyakrytpic/grafana-rbac-controller
-    tag: v1.0
+    repository: kavyakrytpic/grafana-sync
+    tag: v3.0
     pullPolicy: IfNotPresent
 
   ## grafana-rbac-controller containers' resource requests and limits
