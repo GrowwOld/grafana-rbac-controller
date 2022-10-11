@@ -33,6 +33,9 @@ serviceAnnotations: {
 
   # # AWS specific annotation for internal IP
   # service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+
+  # # Azure specific annotation for internal IP
+  # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 }
 
 # Optional service labels
