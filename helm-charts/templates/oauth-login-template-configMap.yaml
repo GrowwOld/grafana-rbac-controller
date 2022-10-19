@@ -1,0 +1,121 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-oauth2-login-template
+  namespace: {{ template "grafana-rbac-controller.namespace" . }}
+data:
+  sign_in.html: |
+    <!DOCTYPE html>
+    <html lang="en" charset="utf-8">
+    <head>
+      <title>Sign In</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+      <style>
+      body {
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+        font-size: 30px;
+        line-height: 1.42857143;
+        color: #fff;
+            background-image: url('https://raw.githubusercontent.com/grafana/grafana/main/public/img/login_background_dark.svg');
+      }
+      .signin {
+        display:block;
+        margin:20px auto;
+        max-width:400px;
+        background: rgba(14, 13, 22, 0.479);
+        border:1px solid rgb(24, 24, 24);
+        opacity: 1;
+        border-radius: 10px;
+        padding: 40px;
+        margin-top: 15%;
+        margin-bottom: 13%;
+      }
+      .center {
+        text-align:center;
+      }
+      .btn {
+        color: #fff;
+        background-color: rgb(248, 69, 69);
+        border: 1px solid rgb(240, 50, 50);
+        -webkit-border-radius: 4;
+        -moz-border-radius: 4;
+        border-radius: 4px;
+        font-size: 16px;
+        padding: 6px 12px;
+          text-decoration: none;
+        display: inline-flex;
+          align-items: center; 
+        cursor: pointer;
+      }
+      .btn:hover {
+        background-color: rgb(231, 98, 98);
+        border-color: rgb(240, 50, 50);
+        text-decoration: none;
+      }
+      label {
+        display: inline-block;
+        max-width: 100%;
+        margin-bottom: 5px;
+        font-weight: 700;
+      }
+      input {
+        display: block;
+        width: 100%;
+        height: 34px;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        color: #555;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.146);
+        -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+        -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        margin:0;
+        box-sizing: border-box;
+      }
+      footer {
+        display:block;
+        font-size:10px;
+        color:#aaa;
+        text-align:center;
+        margin-bottom:10px;
+      }
+      footer a {
+        display:inline-block;
+        height:25px;
+        line-height:25px;
+        color:#aaa;
+        text-decoration:underline;
+      }
+      footer a:hover {
+        color:#aaa;
+      }
+      </style>
+    </head>
+    <body>
+      <div class="signin center">
+      <form method="GET" action="oauth2/start">
+      <input type="hidden" name="rd" value="/controller">
+      <img src="https://raw.githubusercontent.com/grafana/grafana/main/public/img/grafana_icon.svg" alt="Grafana logo" width="30%">
+      <p>Welcome to Grafana</p>
+
+      <div style="height: 0.5px;background-color: #fff; margin-bottom: 30px;">
+
+      </div>
+      <button type="submit" class="btn"><img style = "width:30px; background-color: #fff;" src = 'https://tantech.ie/wp-content/uploads/2022/03/google-logo-png-webinar-optimizing-for-success-google-business-webinar-13-768x768.png' alt = ''>&nbsp;&nbsp;&nbsp;Sign in with Google</button><br/>
+      </form>
+      </div>
+
+
+      <footer>
+        Secured with <a href="https://github.com/bitly/oauth2_proxy#oauth2_proxy">OAuth2 Proxy</a> version
+      </footer>
+
+
+    </body>
+    </html>
