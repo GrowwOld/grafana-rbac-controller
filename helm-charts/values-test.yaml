@@ -1,0 +1,312 @@
+# Default values for grafana-rbac-controller.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Provide a name in place of grafana-rbac-controller for `app:` labels
+nameOverride: ""
+namespaceOverride: ""
+
+# Provide a name to substitute for the full names of resources
+fullnameOverride: ""
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 80
+
+  # Optional - Can be used for headless if value is "None"
+  clusterIP: ""
+
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+
+# Optional pod annotations
+podAnnotations: {}
+
+# Optional pod labels
+podLabels: {}
+
+# Optional service annotations
+serviceAnnotations: {
+  # # GCP specific annotation for internal IP
+  # cloud.google.com/load-balancer-type: "Internal"
+
+  # # AWS specific annotation for internal IP
+  # service.beta.kubernetes.io/aws-load-balancer-scheme: "internal"
+
+  # # Azure specific annotation for internal IP
+  # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+}
+
+# Optional service labels
+serviceLabels: {}
+
+# Enable this if you're using https://github.com/coreos/prometheus-operator
+serviceMonitor:
+  enabled: true
+
+  # Fallback to the prometheus default unless specified
+  # interval: 10s
+
+  ## scheme: HTTP scheme to use for scraping. Can be used with `tlsConfig` for example if using istio mTLS.
+  # scheme: ""
+
+  ## tlsConfig: TLS configuration to use when scraping the endpoint. For example if using istio mTLS.
+  ## Of type: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#tlsconfig
+  # tlsConfig: {}
+
+  # bearerTokenFile:
+  # Fallback to the prometheus default unless specified
+  # scrapeTimeout: 30s
+
+  ## Used to pass Labels that are used by the Prometheus installed in your cluster to select Service Monitors to work with
+  ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec
+  additionalLabels: {}
+
+  # Retain the job and instance labels of the metrics pushed to the Pushgateway
+  # [Scraping Pushgateway](https://github.com/prometheus/pushgateway#configure-the-pushgateway-as-a-target-to-scrape)
+  honorLabels: true
+
+  ## Metric relabel configs to apply to samples before ingestion.
+  ## [Metric Relabeling](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs)
+  metricRelabelings: []
+  # - action: keep
+  #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+  #   sourceLabels: [__name__]
+
+  ## Relabel configs to apply to samples before ingestion.
+  ## [Relabeling](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config)
+  relabelings: []
+  # - sourceLabels: [__meta_kubernetes_pod_node_name]
+  #   separator: ;
+  #   regex: ^(.*)$
+  #   targetLabel: nodename
+  #   replacement: $1
+  #   action: replace
+
+## Configure ingress resource that allow you to access the
+## pushgateway installation. Set up the URL
+## ref: http://kubernetes.io/docs/user-guide/ingress/
+##
+ingress:
+  ## Enable Ingress.
+  ##
+  enabled: true
+  # AWS ALB requires path of /*
+  className: "nginx"
+  path: /
+  pathType: ImplementationSpecific
+
+  # Annotations.
+  #
+  annotations:
+    kubernetes.io/tls-acme: 'true'
+
+  # Hostnames.
+  # Must be provided if Ingress is enabled.
+  #
+  hosts:
+    - <grafana.domain.in>
+
+  # TLS configuration.
+  # Secrets must be manually created in the namespace.
+  #
+  tls:
+    - secretName: <ssl-certificate-secret>
+      hosts:
+        - <grafana.domain.in>
+
+# Registered URL for grafana-rbac-controller
+hostName: <grafana.domain.in>
+
+# Number of grafana-rbac-controller replicas to deploy
+replicaCount: 1
+
+# priorityClassName Controller priorityClassName
+## ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+priorityClassName: "null"
+
+# Details of the exisiting grafana service
+existingGrafanaService: 
+  name: <grafana-service-name>
+  namespace: <grafana-service-namespace>
+  portNumber: <grafana-service-port-number>
+
+
+## nginx proxy parameters 
+
+nginxProxy:
+  image:
+    repository: nginx
+    tag: 1.20.2
+    sha:
+    pullPolicy: IfNotPresent
+
+  ## nginx-proxy containers' resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## We usually recommend not to specify default resources and to leave this as a conscious
+  ## choice for the user. This also increases chances charts run on environments with little
+  ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+  ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  ## resources.limits  - The resources limits for the nginx-proxy container
+  ## resources.requests - The requested resources for the nginx-proxy container
+  ##
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2G
+    requests:
+      cpu: 1000m
+      memory: 1G
+
+
+## oauth2-proxy parameter 
+oauth2Proxy:
+  image:
+    repository: bitnami/oauth2-proxy
+    tag: 7.3.0
+    pullPolicy: IfNotPresent
+
+  ## oauth2-proxy containers' resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## We usually recommend not to specify default resources and to leave this as a conscious
+  ## choice for the user. This also increases chances charts run on environments with little
+  ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+  ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  ## resources.limits  - The resources limits for the oauth2-proxy container
+  ## resources.requests - The requested resources for the oauth2-proxy container
+  ##
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1G
+    requests:
+      cpu: 500m
+      memory: 500Mi
+
+  args: 
+    - provider=google
+    - email-domain=<domain.in>
+    - upstream=https://127.0.0.1
+    - http-address=0.0.0.0:4180
+    - cookie-secure=true
+    - set-xauthrequest=true
+    - pass-user-headers=true
+    - pass-host-header=true
+    - pass-access-token=true
+    - cookie-expire=168h0m0s
+    - custom-templates-dir=/oauth/grafana_templates
+
+  credentials: 
+    existingSecretName: ""
+
+    create: true
+    clientID: ""
+    secret: ""
+    # cookie_secret must be 16, 24, or 32 bytes to create an AES cipher
+    cookie: ""
+
+## grafana-rbac-controller parameters 
+controller:
+  image:
+    repository: ghcr.io/groww/grafana-rbac-controller
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  ## grafana-rbac-controller containers' resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ## We usually recommend not to specify default resources and to leave this as a conscious
+  ## choice for the user. This also increases chances charts run on environments with little
+  ## resources, such as Minikube. If you do want to specify resources, uncomment the following
+  ## lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  ## resources.limits  - The resources limits for the grafana-rbac-controller container
+  ## resources.requests - The requested resources for the grafana-rbac-controller container
+  ##
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1G
+    requests:
+      cpu: 500m
+      memory: 500Mi
+
+  # # grafana-rbac-controller API timeout 
+  # timeout: "5"
+
+# Workspace admin email - Required for accessing Google Admin API
+googleWorkspaceAdmin: <workspaceAdmin@domain.in>
+
+# Google Admin Credentials - Required for accesing the Google ADMIN API
+# Required service account permission: admin.directory.group.readonly
+# ref: https://developers.google.com/workspace/guides/create-credentials
+googleAdminCredentials:
+
+  # Secret must contain 'credentials.json' key
+  existingSecretName: ""
+
+  create: false
+  credentials : |- 
+      ""
+
+##  Grafana Admin Credentials - Required to perform admin actions such as:
+  # Create new users
+  # Add users to organizations
+  # Change user roles in organizations
+  # Delete users from organizations
+grafanaAdminCredentials:
+
+  # Secret must contain 'grafana-admin-password' key
+  existingSecretName: ""
+
+  create: true
+  password: <existing-grafana-admin-password>
+
+# The mapping of grafana user org-roles to Google groups is maintained as a config file - org-permissions.json
+grafanaOrgPermisions:
+
+  # ConfigMap must contain org-permissions.json key which describes how the org-role mapping
+  # of users must occur according to the user's google groups
+  existingConfigMapName: ""
+
+  create: true
+  permissions : >-
+      {
+        "default-viewer-org": ["grafana-org-2", "grafana-org-1"],
+        "org-permissions": 
+        {
+          "grafana-org-0":
+          {
+            "groups": 
+            {
+              "google-group-1@domain.in": "Admin"
+            },
+            "users": 
+            {
+            }
+          },
+          "grafana-org-1":
+          {
+            "groups": 
+            {
+              "google-group-1@domain.in": "Editor",
+              "google-group-2@domain.in": "Admin",
+              "google-group-3@domain.in": "Editor"
+            },
+            "users": 
+            {
+              "user-mailId-1@domain.in": "Admin"
+            }
+          },
+          "grafana-org-2":
+          {
+            "groups": 
+            {
+              "google-group-2@domain.in": "Admin"
+            },
+            "users": 
+            {
+              "user-mailId-2@domain.in": "Admin"
+            }
+          }
+        }
+      }
