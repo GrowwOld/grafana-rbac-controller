@@ -1,5 +1,5 @@
 # Grafana RBAC Controller  
-[![GitHub license](https://img.shields.io/github/license/Groww/grafana-rbac-controller?color=51C838)](https://github.com/Groww/grafana-rbac-controller/blob/main/LICENSE)   [![GitHub issues](https://img.shields.io/github/issues/Groww/grafana-rbac-controller?color=51C838)](https://github.com/Groww/grafana-rbac-controller/issues)  ![Release](https://img.shields.io/github/v/release/Groww/grafana-rbac-controller?display_name=v0.0.0)
+[![GitHub license](https://img.shields.io/github/license/Groww/grafana-rbac-controller?color=51C838)](https://github.com/Groww/grafana-rbac-controller/blob/main/LICENSE)   [![GitHub issues](https://img.shields.io/github/issues/Groww/grafana-rbac-controller?color=51C838)](https://github.com/Groww/grafana-rbac-controller/issues)  ![Release](https://img.shields.io/github/v/release/Groww/grafana-rbac-controller)
 
 ![Grafana](https://img.shields.io/badge/grafana-%23F46800.svg?style=for-the-badge&logo=grafana&logoColor=white)   ![Google](https://img.shields.io/badge/google-4285F4?style=for-the-badge&logo=google&logoColor=white)   ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)   ![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
 
@@ -20,6 +20,8 @@ However, our requirement is to have Grafana org-role mapping based on google gro
 > **Requirement: To update users with appropriate roles in various Grafana organisations based on the user’s google group membership**
 
 Grafana RBAC Controller is a proxy layer around the grafana service that provides users access to Grafana based on their google group membership. The mapping beteween grafana org-role and google group is maintained as a configuration file. We propose the following architecture for updating user permissions to various Grafana organisations on login. </br>
+
+The working of Grafana RBAC Controller is explained in much detail [here](https://tech.groww.in/google-groups-to-manage-grafana-roles-grafana-rbac-controller-8b7efa0f081a)
 
 </br>
 <img src="https://github.com/Groww/grafana-rbac-controller/blob/main/assets/architecture.png" width="75%">
