@@ -48,8 +48,9 @@ func getGoogleGroups(loginId string, logs *apex.Entry) ([]string, error) {
 
 	logs.Info("Created the Google API client")
 
-	// List all groups in "groww.in" that the user is a part of
-	groupsReport, err := srv.Groups.List().Domain("groww.in").UserKey(loginId).Do()
+	// List all groups in the specified domain that the user is a part of
+	domain := os.Getenv("GOOGLE-WORKSPACE-DOMAIN")
+	groupsReport, err := srv.Groups.List().Domain(domain).UserKey(loginId).Do()
 	if err != nil {
 		logs.Error("Error in getting response from the Google Admin API")
 		return nil, err

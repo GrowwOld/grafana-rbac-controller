@@ -109,6 +109,8 @@ spec:
                   key: "grafana-admin-password"
             - name: GOOGLE-WORKSPACE-ADMIN
               value: "{{ .Values.googleWorkspaceAdmin }}"
+            - name: GOOGLE-WORKSPACE-DOMAIN
+              value: "{{ .Values.googleWorkspaceDomain }}"
 
       volumes: 
         - name: nginx-config

@@ -236,6 +236,9 @@ controller:
 # Workspace admin email - Required for accessing Google Admin API
 googleWorkspaceAdmin: <workspaceAdmin@domain.in>
 
+# Workspace domain - This should match with the allowed domain in oauth2Proxy arguments
+googleWorkspaceDomain: <domain.in>
+
 # Google Admin Credentials - Required for accesing the Google ADMIN API
 # Required service account permission: admin.directory.group.readonly
 # ref: https://developers.google.com/workspace/guides/create-credentials
