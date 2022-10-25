@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -112,6 +113,9 @@ func incrementTimeoutErrors() {
 }
 
 func main() {
+
+	rand.Seed(time.Now().UnixNano())
+
 	fmt.Println("Starting server at port 9080 ...")
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/controller", updateUsers_timeout)
