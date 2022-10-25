@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/url"
 	"os"
 
 	apex "github.com/apex/log"
 	sdk "github.com/grafana/grafana-api-golang-client"
 )
+
+var passwordBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890%#"
 
 func getGrafanaClient(logs *apex.Entry) (*sdk.Client, error) {
 
@@ -33,7 +36,17 @@ func getGrafanaUserId(client *sdk.Client, loginId string, logs *apex.Entry) (int
 	if err != nil {
 		logs.Error("User not found: " + err.Error())
 
-		var userDetails = sdk.User{Email: loginId, Password: "password"}
+		// Generating random password - https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
+		password := make([]byte, 10)
+		randomInt := rand.Int63()
+		for i := 0; i < 10; {
+			idx := int(randomInt & 63)
+			password[i] = passwordBytes[idx]
+			randomInt >>= 6
+			i++
+		}
+
+		var userDetails = sdk.User{Email: loginId, Password: string(password)}
 		user, err := client.CreateUser(userDetails)
 
 		if err != nil {
